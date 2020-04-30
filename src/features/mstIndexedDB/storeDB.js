@@ -7,16 +7,45 @@ export default types
         keyPath: types.string,
         autoIncrement: true
     })
+    .volatile(self => ({
+        items: []
+    }))
     .actions(self => ({
+        afterCreate() {
+            self.getItems().then(its => self.setItems(its))
+        },
+        setItems(items) {
+            self.items = items
+        },
+        getItems: flow(function* () {
+            try {
+                const store = yield self._getStoreTransaction()
+                let request = store.openCursor()
+                return new Promise((resolve, reject) => {
+                    const items = []
+                    request.onsuccess = () => {
+                        let cursor = request.result
+                        if (cursor) {
+                            items.push(cursor.value)
+                            cursor.continue()
+                        } else resolve(items)
+                    }
+                })
+            } catch (e) {
+
+            }
+        }),
         add: flow(function* (data) {
             try {
                 const store = yield self._getStoreTransaction()
                 const request = store.add(data)
                 return new Promise((resolve, reject) => {
-                    request.onsuccess = () =>
-                        resolve(`[idxDB] Объект ${data.name} добавлен в хранилище\n${request.result}`)
+                    request.onsuccess = () => {
+                        self.getItems().then(its => self.setItems(its))
+                        resolve()
+                    }
                     request.onerror = () =>
-                        reject(`[idxDB] Ошибка добавления объекта ${data.name}\n${request.error}`)
+                        reject(request.error)
                 })
             } catch (e) {
                 return Promise.reject(e)
@@ -37,4 +66,3 @@ export default types
             }
         })
     }))
-    .views(self => ({}))
