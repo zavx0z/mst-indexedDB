@@ -51,8 +51,11 @@ export default types
                 return Promise.reject(e)
             }
         }),
-        delete() {
-        },
+        remove: flow(function* (id) {
+            const store = yield self._getStoreTransaction()
+            store.delete(id)
+            self.getItems().then(its => self.setItems(its))
+        }),
         update() {
         },
         _getStoreTransaction: flow(function* () {
