@@ -1,11 +1,13 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {observer} from "mobx-react"
 import idxDB from "./features/mstIndexedDB/idxDB"
 
 export default observer(() => {
-    const {getStore} = idxDB
-    const store = getStore('store')
-    console.log(store)
+    const [store] = useState(idxDB.getStore('store'))
+    useEffect(() => {
+        store.getTransaction()
+            .then(transaction => console.log(transaction))
+    }, [store])
     return <>
         <h1>mst-indexed-db</h1>
     </>

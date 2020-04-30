@@ -1,4 +1,4 @@
-import {types, getRoot} from "mobx-state-tree"
+import {types, getRoot, flow} from "mobx-state-tree"
 
 export default types
     .model({
@@ -6,9 +6,6 @@ export default types
         name: types.string,
         keyPath: types.string
     })
-    .volatile(self => ({
-        db: {}
-    }))
     .actions(self => ({
         add(data) {
             let request = self.transaction.add(data)
@@ -22,12 +19,27 @@ export default types
         delete() {
         },
         update() {
-        }
+        },
+        getTransaction: flow(function* () {
+            const root = getRoot(self)
+            try {
+                const db = yield root.getDB()
+                return db.transaction(self.name, "readwrite")
+            } catch (e) {
+
+            }
+        })
     }))
     .views(self => ({
         get transaction() {
             const {db} = getRoot(self)
-            const transaction = db.transaction(self.name, "readwrite")
-            return transaction.objectStore(self.name)
+            console.log(db)
+            if (typeof db !== "undefined") {
+                const transaction = db.transaction(self.name, "readwrite")
+                console.log(transaction)
+                // return transaction.objectStore(self.name)
+                return db
+            }
+            return undefined
         }
     }))

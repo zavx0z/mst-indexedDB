@@ -1,4 +1,4 @@
-import {types} from "mobx-state-tree"
+import {flow, types} from "mobx-state-tree"
 import storeDB from "./storeDB"
 
 const idxDB = types
@@ -8,7 +8,7 @@ const idxDB = types
         stores: types.maybe(types.array(storeDB))
     })
     .volatile(self => ({
-        db: {}
+        _db: undefined
     }))
     .actions(self => ({
         afterCreate() {
@@ -18,12 +18,12 @@ const idxDB = types
                 request.onupgradeneeded = () => self._upgrade(request)
                 request.onerror = () => console.error("Error", request.error)
                 request.onsuccess = () => self._success(request)
-                request.onblocked = () => console.log("соединение не закрыто после db.onversionchange")
+                request.onblocked = () => console.log("соединение не закрыто после _db.onversionchange")
             } else console.log("Браузер не поддерживает IndexedDB")
         },
         _upgrade(request) {
             this.setDB(request.result)
-            switch (self.db.version) {
+            switch (self._db.version) {
                 case 0:
                     console.log("инициализация")
                     break
@@ -38,17 +38,32 @@ const idxDB = types
         _success(request) {
             console.log("База готова к работе")
             this.setDB(request.result)
-            self.db.onversionchange = () => {
-                self.db.close()
-                alert("База данных устарела, перезагрузите страницу.")
+            self._db.onversionchange = () => {
+                self._db.close()
+                console.log("База данных устарела, перезагрузите страницу.")
             }
         },
-        setDB(db) {
-            self.db = db
+        getDB: flow(function* () {
+            try {
+                return yield new Promise(resolve => {
+                    const fn = () => {
+                        if (typeof self._db !== "undefined") {
+                            clearInterval(interval)
+                            return resolve(self._db)
+                        }
+                    }
+                    const interval = setInterval(fn, 100)
+                })
+            } catch (e) {
+
+            }
+        }),
+        setDB(_db) {
+            self._db = _db
         },// ==========================================================
         createStore(request, store) {
-            !self.db.objectStoreNames.contains(store.name) &&
-            self.db.createObjectStore(store.name, {keyPath: store.keyPath})
+            !self._db.objectStoreNames.contains(store.name) &&
+            self._db.createObjectStore(store.name, {keyPath: store.keyPath})
         },
         getStore(name) {
             return self.stores.find(store => store.name === name)
@@ -58,7 +73,7 @@ const idxDB = types
         }
     }))
 export default idxDB.create({
-    dbName: "db",
+    dbName: "_db",
     stores: [
         {id: 1, name: 'store', keyPath: 'id'},
     ]
