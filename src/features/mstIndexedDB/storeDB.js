@@ -12,9 +12,11 @@ export default types
     }))
     .actions(self => ({
         afterCreate() {
-            self.getItems()
-                .then(its => self.setItems(its))
-                .catch(e => console.log(e))
+            if (!self.$treenode.isRoot) {
+                self.getItems()
+                    .then(its => self.setItems(its))
+                    .catch(e => console.log(e))
+            }
         },
         setItems(items) {
             self.items = items
