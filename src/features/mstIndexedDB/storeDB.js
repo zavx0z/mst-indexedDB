@@ -10,8 +10,7 @@ export default types
     .actions(self => ({
         add: flow(function* (data) {
             try {
-                const transaction = yield self.getTransaction()
-                const store = transaction.objectStore(self.name)
+                const store = yield self._getStoreTransaction()
                 const request = store.add(data)
                 return new Promise((resolve, reject) => {
                     request.onsuccess = () =>
@@ -27,15 +26,15 @@ export default types
         },
         update() {
         },
-        getTransaction: flow(function* () {
+        _getStoreTransaction: flow(function* () {
             const root = getRoot(self)
             try {
                 const db = yield root.getDB()
-                return db.transaction(self.name, "readwrite")
+                const transaction = db.transaction(self.name, "readwrite")
+                return transaction.objectStore(self.name)
             } catch (e) {
 
             }
         })
     }))
-    .views(self => ({
-    }))
+    .views(self => ({}))
