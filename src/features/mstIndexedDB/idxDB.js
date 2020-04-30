@@ -15,29 +15,29 @@ const idxDB = types
             if ("indexedDB" in window) {
                 console.log("[idxDB] Браузер поддерживает IndexedDB")
                 let request = indexedDB.open(self.dbName, self.version)
-                request.onupgradeneeded = () => self._upgrade(request)
-                request.onerror = () => console.error("[idxDB] Error", request.error)
-                request.onsuccess = () => self._success(request)
-                request.onblocked = () => console.log("[idxDB] соединение не закрыто после _db.onversionchange")
+                request.onupgradeneeded = (e) => self._upgrade(e)
+                request.onerror = (e) => console.error("[idxDB] Error", e.error)
+                request.onsuccess = (e) => self._success(e)
+                request.onblocked = (e) => console.log("[idxDB] соединение не закрыто после _db.onversionchange")
             } else console.log("[idxDB] Браузер не поддерживает IndexedDB")
         },
-        _upgrade(request) {
-            this.setDB(request.result)
+        _upgrade(e) {
+            this.setDB(e.target.result)
             switch (self._db.version) {
                 case 0:
                     console.log("[idxDB] инициализация")
                     break
                 case 1:
                     console.log("[idxDB] обновление")
-                    self.stores.map(store => this.createStore(request, store))
+                    self.stores.map(store => this.createStore(store))
                     break
                 default:
                     console.log("default")
             }
         },
-        _success(request) {
+        _success(e) {
             console.log("[idxDB] База готова к работе")
-            this.setDB(request.result)
+            this.setDB(e.target.result)
             self._db.onversionchange = () => {
                 self._db.close()
                 console.log("[idxDB] База устарела, перезагрузи страницу.")
@@ -61,7 +61,7 @@ const idxDB = types
         setDB(_db) {
             self._db = _db
         },// ==========================================================
-        createStore(request, store) {
+        createStore(store) {
             !self._db.objectStoreNames.contains(store.name) &&
             self._db.createObjectStore(store.name, {keyPath: store.keyPath})
         },
