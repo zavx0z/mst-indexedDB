@@ -50,7 +50,10 @@ const idxDB = types
             !self.db.objectStoreNames.contains(store.name) &&
             self.db.createObjectStore(store.name, {keyPath: store.keyPath})
         },
-        delete() {
+        getStore(name) {
+            return self.stores.find(store => store.name === name)
+        },
+        deleteDB() {
             indexedDB.deleteDatabase(self.dbName)
         }
     }))
