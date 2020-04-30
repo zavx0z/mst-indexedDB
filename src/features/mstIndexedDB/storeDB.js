@@ -7,15 +7,21 @@ export default types
         keyPath: types.string
     })
     .actions(self => ({
-        add(data) {
-            let request = self.transaction.add(data)
-            request.onsuccess = function () {
-                console.log(`Объект ${data} добавлен в хранилище`, request.result)
+        add: flow(function* (data) {
+            try {
+                const transaction = yield self.getTransaction()
+                const store = transaction.objectStore(self.name)
+                const request = store.add(data)
+                return new Promise((resolve, reject) => {
+                    request.onsuccess = () =>
+                        resolve(`[idxDB] Объект ${data.name} добавлен в хранилище\n${request.result}`)
+                    request.onerror = () =>
+                        reject(`[idxDB] Ошибка добавления объекта ${data.name}\n${request.error}`)
+                })
+            } catch (e) {
+
             }
-            request.onerror = function () {
-                console.log(`Ошибка добавления объекта ${data}`, request.error)
-            }
-        },
+        }),
         delete() {
         },
         update() {
@@ -37,7 +43,6 @@ export default types
             if (typeof db !== "undefined") {
                 const transaction = db.transaction(self.name, "readwrite")
                 console.log(transaction)
-                // return transaction.objectStore(self.name)
                 return db
             }
             return undefined

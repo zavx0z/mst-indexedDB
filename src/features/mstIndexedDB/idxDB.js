@@ -13,22 +13,22 @@ const idxDB = types
     .actions(self => ({
         afterCreate() {
             if ("indexedDB" in window) {
-                console.log("Браузер поддерживает IndexedDB")
+                console.log("[idxDB] Браузер поддерживает IndexedDB")
                 let request = indexedDB.open(self.dbName, self.version)
                 request.onupgradeneeded = () => self._upgrade(request)
-                request.onerror = () => console.error("Error", request.error)
+                request.onerror = () => console.error("[idxDB] Error", request.error)
                 request.onsuccess = () => self._success(request)
-                request.onblocked = () => console.log("соединение не закрыто после _db.onversionchange")
-            } else console.log("Браузер не поддерживает IndexedDB")
+                request.onblocked = () => console.log("[idxDB] соединение не закрыто после _db.onversionchange")
+            } else console.log("[idxDB] Браузер не поддерживает IndexedDB")
         },
         _upgrade(request) {
             this.setDB(request.result)
             switch (self._db.version) {
                 case 0:
-                    console.log("инициализация")
+                    console.log("[idxDB] инициализация")
                     break
                 case 1:
-                    console.log("обновление")
+                    console.log("[idxDB] обновление")
                     self.stores.map(store => this.createStore(request, store))
                     break
                 default:
@@ -36,11 +36,11 @@ const idxDB = types
             }
         },
         _success(request) {
-            console.log("База готова к работе")
+            console.log("[idxDB] База готова к работе")
             this.setDB(request.result)
             self._db.onversionchange = () => {
                 self._db.close()
-                console.log("База данных устарела, перезагрузите страницу.")
+                console.log("[idxDB] База устарела, перезагрузи страницу.")
             }
         },
         getDB: flow(function* () {
@@ -73,7 +73,7 @@ const idxDB = types
         }
     }))
 export default idxDB.create({
-    dbName: "_db",
+    dbName: "db",
     stores: [
         {id: 1, name: 'store', keyPath: 'id'},
     ]
