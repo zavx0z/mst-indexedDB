@@ -26,6 +26,7 @@ const idxDB = types
             switch (self._db.version) {
                 case 0:
                     console.log("[idxDB] инициализация")
+                    self.stores.map(store => this.createStore(store))
                     break
                 case 1:
                     console.log("[idxDB] обновление")
@@ -62,8 +63,11 @@ const idxDB = types
             self._db = _db
         },// ==========================================================
         createStore(store) {
-            !self._db.objectStoreNames.contains(store.name) &&
-            self._db.createObjectStore(store.name, {keyPath: store.keyPath})
+            if (!self._db.objectStoreNames.contains(store.name)) {
+                const objectStore = self._db.createObjectStore(store.name,
+                    {keyPath: store.keyPath, autoIncrement: store.autoIncrement})
+                objectStore.createIndex(store.keyPath, store.keyPath)
+            }
         },
         getStore(name) {
             return self.stores.find(store => store.name === name)

@@ -4,7 +4,8 @@ export default types
     .model({
         id: types.identifierNumber,
         name: types.string,
-        keyPath: types.string
+        keyPath: types.string,
+        autoIncrement: true
     })
     .actions(self => ({
         add: flow(function* (data) {
@@ -19,7 +20,7 @@ export default types
                         reject(`[idxDB] Ошибка добавления объекта ${data.name}\n${request.error}`)
                 })
             } catch (e) {
-
+                return Promise.reject(e)
             }
         }),
         delete() {
@@ -37,14 +38,4 @@ export default types
         })
     }))
     .views(self => ({
-        get transaction() {
-            const {db} = getRoot(self)
-            console.log(db)
-            if (typeof db !== "undefined") {
-                const transaction = db.transaction(self.name, "readwrite")
-                console.log(transaction)
-                return db
-            }
-            return undefined
-        }
     }))
