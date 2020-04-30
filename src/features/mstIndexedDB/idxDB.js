@@ -1,7 +1,7 @@
 import {flow, types} from "mobx-state-tree"
 import storeDB from "./storeDB"
 
-const idxDB = types
+export default types
     .model({
         dbName: types.string,
         version: 1,
@@ -22,15 +22,15 @@ const idxDB = types
             } else console.log("[idxDB] Браузер не поддерживает IndexedDB")
         },
         _upgrade(e) {
-            this.setDB(e.target.result)
-            switch (self._db.version) {
+            const db = e.target.result
+            switch (db.version) {
                 case 0:
                     console.log("[idxDB] инициализация")
-                    self.stores.map(store => this.createStore(store))
+                    self.stores.map(store => this.createStore(db, store))
                     break
                 case 1:
                     console.log("[idxDB] обновление")
-                    self.stores.map(store => this.createStore(store))
+                    self.stores.map(store => this.createStore(db, store))
                     break
                 default:
                     console.log("default")
@@ -56,15 +56,15 @@ const idxDB = types
                     const interval = setInterval(fn, 100)
                 })
             } catch (e) {
-
+                return Promise.reject(e)
             }
         }),
         setDB(_db) {
             self._db = _db
         },// ==========================================================
-        createStore(store) {
-            if (!self._db.objectStoreNames.contains(store.name)) {
-                const objectStore = self._db.createObjectStore(store.name,
+        createStore(db, store) {
+            if (!db.objectStoreNames.contains(store.name)) {
+                const objectStore = db.createObjectStore(store.name,
                     {keyPath: store.keyPath, autoIncrement: store.autoIncrement})
                 objectStore.createIndex(store.keyPath, store.keyPath)
             }
@@ -76,9 +76,3 @@ const idxDB = types
             indexedDB.deleteDatabase(self.dbName)
         }
     }))
-export default idxDB.create({
-    dbName: "db",
-    stores: [
-        {id: 1, name: 'store', keyPath: 'id'},
-    ]
-})

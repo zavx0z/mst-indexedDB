@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import {observer} from "mobx-react"
-import idxDB from "./features/mstIndexedDB/idxDB"
+import storeDB from "./storeDB"
 
 export default observer(() => {
-    const [store] = useState(idxDB.getStore('store'))
+    const [store] = useState(storeDB.getStore('stairs'))
     const [value, setValue] = useState('')
     const handleAdd = () => {
         store.add({name: value})

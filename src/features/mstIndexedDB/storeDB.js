@@ -12,7 +12,9 @@ export default types
     }))
     .actions(self => ({
         afterCreate() {
-            self.getItems().then(its => self.setItems(its))
+            self.getItems()
+                .then(its => self.setItems(its))
+                .catch(e => console.log(e))
         },
         setItems(items) {
             self.items = items
@@ -32,7 +34,7 @@ export default types
                     }
                 })
             } catch (e) {
-
+                return Promise.reject(e)
             }
         }),
         add: flow(function* (data) {
@@ -65,7 +67,7 @@ export default types
                 const transaction = db.transaction(self.name, "readwrite")
                 return transaction.objectStore(self.name)
             } catch (e) {
-
+                return Promise.reject(e)
             }
         })
     }))
