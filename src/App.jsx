@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {observer} from "mobx-react"
-import storeDB from "./storeDB"
+import storeDB from "./features/mstIndexedDB/storeDB"
 
 export default observer(() => {
     const [store] = useState(storeDB.getStore('stairs'))

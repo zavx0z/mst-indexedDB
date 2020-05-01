@@ -1,12 +1,7 @@
 import {flow, types} from "mobx-state-tree"
-import storeDB from "./storeDB"
 
 export default types
-    .model({
-        dbName: types.string,
-        version: 1,
-        stores: types.maybe(types.array(storeDB))
-    })
+    .model({})
     .volatile(self => ({
         _db: undefined
     }))
@@ -26,11 +21,11 @@ export default types
             switch (db.version) {
                 case 0:
                     console.log("[idxDB] инициализация")
-                    self.stores.map(store => this.createStore(db, store))
+                    self.stores.map(store => self.createStore(db, store))
                     break
                 case 1:
                     console.log("[idxDB] обновление")
-                    self.stores.map(store => this.createStore(db, store))
+                    self.stores.map(store => self.createStore(db, store))
                     break
                 default:
                     console.log("default")
@@ -38,7 +33,7 @@ export default types
         },
         _success(e) {
             console.log("[idxDB] База готова к работе")
-            this.setDB(e.target.result)
+            self.setDB(e.target.result)
             self._db.onversionchange = () => {
                 self._db.close()
                 console.log("[idxDB] База устарела, перезагрузи страницу.")
@@ -61,18 +56,5 @@ export default types
         }),
         setDB(_db) {
             self._db = _db
-        },// ==========================================================
-        createStore(db, store) {
-            if (!db.objectStoreNames.contains(store.name)) {
-                const objectStore = db.createObjectStore(store.name,
-                    {keyPath: store.keyPath, autoIncrement: store.autoIncrement})
-                objectStore.createIndex(store.keyPath, store.keyPath)
-            }
         },
-        getStore(name) {
-            return self.stores.find(store => store.name === name)
-        },
-        deleteDB() {
-            indexedDB.deleteDatabase(self.dbName)
-        }
     }))
