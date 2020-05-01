@@ -5,10 +5,12 @@ export default () => {
     const [store] = useState(storeDB.getStore('stairs'))
     const [items, setItems] = useState([])
     useEffect(() => {
-        store.getItems().then(items => setItems(items))
+        store.getItems()
+            .then(items => setItems(items))
     }, [store])
 
     const [value, setValue] = useState('')
+    const handleOnChangeValue = (e) => setValue(e.target.value)
     const handleAdd = () => store
         .add({name: value})
         .then(item => [...items, item])
@@ -21,12 +23,13 @@ export default () => {
         .catch(e => console.log(e))
     return <>
         <h1>mst-indexed-db</h1>
-        <input value={value} onChange={e => setValue(e.target.value)}/>
+        <input value={value} onChange={handleOnChangeValue}/>
         <button onClick={handleAdd}>Добавить</button>
         <ul>
             {items.map((item, idx) => <li key={idx}>
-                {item.name}&nbsp;
                 <button onClick={() => handleRemove(item.id)}>удалить</button>
+                &nbsp;
+                {item.name}
             </li>)}
         </ul>
     </>
