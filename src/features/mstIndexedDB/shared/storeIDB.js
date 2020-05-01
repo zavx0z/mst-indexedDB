@@ -7,6 +7,8 @@ export default types.compose(baseStoreIDB, types
         name: types.string,
         keyPath: types.string,
         autoIncrement: true,
+        dataListUrl: types.string,
     })
-    .actions(self => ({}))
+    .actions(self => ({
+    }))
 )

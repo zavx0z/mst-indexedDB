@@ -2,18 +2,7 @@ import {types, getRoot, flow} from "mobx-state-tree"
 
 export default types
     .model({})
-    .volatile(self => ({
-        items: [],
-    }))
     .actions(self => ({
-        afterCreate() {
-            self.getItems()
-                .then(its => self.setItems(its))
-                .catch(e => console.log(e))
-        },
-        setItems(items) {
-            self.items = items
-        },
         getItems: flow(function* () {
             try {
                 const store = yield self._getStoreTransaction()
@@ -38,9 +27,12 @@ export default types
                     const store = yield self._getStoreTransaction()
                     const request = store.add(data)
                     return new Promise((resolve, reject) => {
-                        request.onsuccess = () => {
-                            self.getItems().then(its => self.setItems(its))
-                            resolve()
+                        request.onsuccess = (e) => {
+                            const id = e.target.result
+                            const item = store.get(id)
+                            item.onsuccess = (e) => {
+                                resolve(e.target.result)
+                            }
                         }
                         request.onerror = () =>
                             reject(request.error)
@@ -50,9 +42,15 @@ export default types
                 }
         }),
         remove: flow(function* (id) {
-            const store = yield self._getStoreTransaction()
-            store.delete(id)
-            self.getItems().then(its => self.setItems(its))
+            try {
+                const store = yield self._getStoreTransaction()
+                return new Promise(resolve => {
+                    const request = store.delete(id)
+                    request.onsuccess = (e => resolve(e))
+                })
+            }catch(e){
+                return Promise.reject(e)
+            }
         }),
         update() {
         },

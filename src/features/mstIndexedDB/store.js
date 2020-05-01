@@ -8,6 +8,7 @@ export default databaseIDB
                 id: 1,
                 name: 'stairs',
                 keyPath: 'id',
+                dataListUrl: 'https://dnk-zamer.firebaseio.com/stairs.json'
             }
         ]
     })
